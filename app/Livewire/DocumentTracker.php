@@ -15,6 +15,23 @@ class DocumentTracker extends Component
 
     public $search = '';
     
+    public $perPage = 10;
+    public $sortBy = 'tanggal_daftar';
+    public $sortDirection = 'desc';
+
+    public function sortByField($field)
+    {
+        $allowed = ['tanggal_daftar', 'nama', 'tanggal_lahir', 'tempat_lahir', 'negara_tujuan', 'nama_sponsor'];
+        if (!in_array($field, $allowed)) return;
+
+        if ($this->sortBy === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $field;
+            $this->sortDirection = 'asc';
+        }
+    }
+    
     // Add/Edit Document Modal
     public $showAddModal = false;
     public $showEditModal = false;
@@ -179,8 +196,17 @@ class DocumentTracker extends Component
                   ->orWhere('passport_number', 'like', '%' . $this->search . '%');
         }
 
+        $dbField = match($this->sortBy) {
+            'nama' => 'full_name',
+            'tanggal_lahir' => 'date_of_birth',
+            'tempat_lahir' => 'place_of_birth',
+            'negara_tujuan' => 'destination_country',
+            'nama_sponsor' => 'sponsor_id',
+            default => 'tanggal_daftar'
+        };
+
         return view('livewire.document-tracker', [
-            'tkis' => $query->latest()->paginate(15)
+            'tkis' => $query->orderBy($dbField, $this->sortDirection)->paginate($this->perPage)
         ])->layout('components.layouts.app');
     }
 }

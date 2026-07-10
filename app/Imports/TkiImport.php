@@ -55,6 +55,7 @@ class TkiImport implements ToModel, WithHeadingRow, WithBatchInserts
         }
 
         return new Tki([
+            'tanggal_daftar'      => $this->parseDate($row['tanggal_daftar'] ?? $row['tgl_daftar'] ?? null),
             'registration_date'   => $this->parseDate($row['tgl_daftar'] ?? null),
             'full_name'           => $row['nama_tki'],
             'gender'              => strtoupper(trim($row['lp'] ?? 'P')),

@@ -1,8 +1,17 @@
 <div class="max-w-7xl mx-auto p-6 space-y-6">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h2 class="text-2xl font-bold text-mono-800">Pelacak Dokumen TKI</h2>
-        <div class="w-full md:w-1/3">
-            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari Nama / Paspor TKI..." class="w-full bg-white/60 border border-mono-300 rounded-xl px-4 py-3.5 text-lg placeholder:text-mono-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all duration-300 backdrop-blur-sm text-mono-900">
+        <div class="w-full md:w-2/3 flex flex-col md:flex-row gap-4 items-center justify-end">
+            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari Nama / Paspor TKI..." class="w-full md:w-2/3 bg-white/60 border border-mono-300 rounded-xl px-4 py-3.5 text-lg placeholder:text-mono-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all duration-300 backdrop-blur-sm text-mono-900">
+            <div class="flex items-center space-x-2 shrink-0 bg-white/60 backdrop-blur-md rounded-xl border border-mono-300 px-3 py-1.5">
+                <label class="text-sm font-semibold text-gray-700">Per Page:</label>
+                <select wire:model.live="perPage" class="bg-transparent border-none text-sm focus:ring-0 cursor-pointer">
+                    <option value="1">1</option>
+                    <option value="10">10</option>
+                    <option value="100">100</option>
+                    <option value="1000">1000</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -23,16 +32,16 @@
                 <!-- Master Row -->
                 <div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:bg-white/40" @click="expandedTki = expandedTki === {{ $tki->id }} ? null : {{ $tki->id }}">
                     <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                        <div>
-                            <span class="text-xs font-semibold text-mono-500 block uppercase tracking-wider">Nama TKI</span>
+                        <div wire:click.stop="sortByField('nama')" class="cursor-pointer hover:text-indigo-600 transition-colors">
+                            <span class="text-xs font-semibold text-mono-500 block uppercase tracking-wider">Nama TKI @if($sortBy === 'nama') {!! $sortDirection === 'asc' ? '&uarr;' : '&darr;' !!} @endif</span>
                             <span class="text-lg font-bold text-mono-900">{{ $tki->full_name }}</span>
                         </div>
                         <div>
                             <span class="text-xs font-semibold text-mono-500 block uppercase tracking-wider">Paspor</span>
                             <span class="text-base font-semibold text-mono-700">{{ $tki->passport_number ?: 'N/A' }}</span>
                         </div>
-                        <div>
-                            <span class="text-xs font-semibold text-mono-500 block uppercase tracking-wider">Tujuan</span>
+                        <div wire:click.stop="sortByField('negara_tujuan')" class="cursor-pointer hover:text-indigo-600 transition-colors">
+                            <span class="text-xs font-semibold text-mono-500 block uppercase tracking-wider">Tujuan @if($sortBy === 'negara_tujuan') {!! $sortDirection === 'asc' ? '&uarr;' : '&darr;' !!} @endif</span>
                             <span class="text-base font-semibold text-mono-700">{{ $tki->destination_country ?: 'N/A' }}</span>
                         </div>
                         <div>
@@ -140,7 +149,7 @@
 
     <!-- Add Document Modal -->
     <div x-data="{ show: @entangle('showAddModal') }" x-show="show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm">
-        <div @click.away="show = false" class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-gray-200">
+        <div @click.away="show = false" class="bg-white rounded-2xl shadow-xl w-full max-w-[95%] md:max-w-md p-6 border border-gray-200">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Tambah Dokumen</h3>
             <form wire:submit.prevent="saveDocument">
                 <div class="space-y-4">
@@ -185,7 +194,7 @@
 
     <!-- Edit Document Modal -->
     <div x-data="{ show: @entangle('showEditModal') }" x-show="show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm">
-        <div @click.away="show = false" class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-gray-200">
+        <div @click.away="show = false" class="bg-white rounded-2xl shadow-xl w-full max-w-[95%] md:max-w-md p-6 border border-gray-200">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Edit Dokumen</h3>
             <form wire:submit.prevent="updateDocument">
                 <div class="space-y-4">
@@ -230,7 +239,7 @@
 
     <!-- Transfer Modal -->
     <div x-data="{ show: @entangle('showTransferModal') }" x-show="show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm">
-        <div @click.away="show = false" class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-gray-200">
+        <div @click.away="show = false" class="bg-white rounded-2xl shadow-xl w-full max-w-[95%] md:max-w-md p-6 border border-gray-200">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Pindah Tangan Dokumen</h3>
             <form wire:submit.prevent="submitTransfer">
                 <div class="space-y-4">
@@ -263,7 +272,7 @@
          class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-md"
          style="display: none;">
 
-        <div @click.away="open = false" class="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-5xl border border-white/50 overflow-hidden flex flex-col">
+        <div @click.away="open = false" class="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-[95%] md:max-w-2xl lg:max-w-5xl border border-white/50 overflow-hidden flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-gray-200/50">
                 <h3 class="text-lg font-bold text-gray-800">Pratinjau Dokumen</h3>
                 <button @click="open = false" class="text-gray-500 hover:text-red-600 bg-gray-100 hover:bg-red-50 p-2 rounded-lg transition-colors">
@@ -271,7 +280,7 @@
                 </button>
             </div>
 
-            <div class="p-4 bg-gray-50/50 h-[75vh] w-full flex items-center justify-center overflow-auto">
+            <div class="p-4 bg-gray-50/50 h-[60vh] md:h-[75vh] w-full flex items-center justify-center overflow-auto">
                 <template x-if="['jpg', 'jpeg', 'png'].includes(ext.toLowerCase())">
                     <img :src="url" class="max-h-full max-w-full object-contain rounded shadow-sm border border-gray-200">
                 </template>

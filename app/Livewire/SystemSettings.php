@@ -56,9 +56,9 @@ class SystemSettings extends Component
     {
         try {
             \Illuminate\Support\Facades\Artisan::call('backup:run');
-            session()->flash('backup_message', 'Backup berhasil dijalankan. File tersimpan di storage.');
+            $this->dispatch('notify', message: 'Backup manual berhasil dieksekusi.', type: 'success');
         } catch (\Exception $e) {
-            session()->flash('backup_error', 'Gagal menjalankan backup: ' . $e->getMessage());
+            $this->dispatch('notify', message: 'Gagal menjalankan backup: ' . $e->getMessage(), type: 'error');
         }
     }
 

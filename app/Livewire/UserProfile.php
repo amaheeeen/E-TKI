@@ -3,17 +3,21 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class UserProfile extends Component
 {
+    use WithFileUploads;
+
     public $name;
     public $email;
     public $phone_number;
     public $bio;
     public $new_password;
     public $new_password_confirmation;
+    public $avatar;
 
     public function mount()
     {
@@ -33,6 +37,7 @@ class UserProfile extends Component
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone_number' => 'nullable|string|max:20',
             'bio' => 'nullable|string',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,webp,svg|max:2048',
         ];
 
         if ($this->new_password) {
@@ -50,11 +55,21 @@ class UserProfile extends Component
             $user->password = Hash::make($this->new_password);
         }
 
-        $user->save();
+        try {
+            if ($this->avatar) {
+                $path = $this->avatar->store('avatars', 'public');
+                $user->avatar = $path;
+            }
 
-        session()->flash('message', 'Profil berhasil diperbarui!');
-        $this->new_password = null;
-        $this->new_password_confirmation = null;
+            $user->save();
+
+            session()->flash('message', 'Profil berhasil diperbarui!');
+            $this->new_password = null;
+            $this->new_password_confirmation = null;
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal mengunggah foto: ' . $e->getMessage());
+            return;
+        }
     }
 
     public function render()

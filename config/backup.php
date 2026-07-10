@@ -7,7 +7,7 @@ return [
          * The name of this application. You can use this name to monitor
          * the backups.
          */
-        'name' => env('APP_NAME', 'laravel-backup'),
+        'name' => '',
 
         'source' => [
             'files' => [
@@ -151,7 +151,7 @@ return [
              * The disk names on which the backups will be stored.
              */
             'disks' => [
-                'local',
+                'google',
             ],
         ],
 
@@ -196,12 +196,12 @@ return [
      */
     'notifications' => [
         'notifications' => [
-            \Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification::class => ['log'],
-            \Spatie\Backup\Notifications\Notifications\UnhealthyBackupWasFoundNotification::class => ['log'],
-            \Spatie\Backup\Notifications\Notifications\CleanupHasFailedNotification::class => ['log'],
-            \Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class => ['log'],
-            \Spatie\Backup\Notifications\Notifications\HealthyBackupWasFoundNotification::class => ['log'],
-            \Spatie\Backup\Notifications\Notifications\CleanupWasSuccessfulNotification::class => ['log'],
+            \Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification::class => [],
+            \Spatie\Backup\Notifications\Notifications\UnhealthyBackupWasFoundNotification::class => [],
+            \Spatie\Backup\Notifications\Notifications\CleanupHasFailedNotification::class => [],
+            \Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class => [],
+            \Spatie\Backup\Notifications\Notifications\HealthyBackupWasFoundNotification::class => [],
+            \Spatie\Backup\Notifications\Notifications\CleanupWasSuccessfulNotification::class => [],
         ],
 
         /*

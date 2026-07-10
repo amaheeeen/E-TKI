@@ -1,0 +1,17 @@
+{
+    "name": "E-TKI Enterprise",
+    "short_name": "E-TKI",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4f46e5",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Laravel.svg/512px-Laravel.svg.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

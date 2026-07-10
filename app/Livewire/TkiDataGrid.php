@@ -16,25 +16,29 @@ class TkiDataGrid extends Component
     use WithFileUploads;
 
     public $search = '';
-    public $sortField = 'id';
+    public $sortBy = 'tanggal_daftar';
     public $sortDirection = 'desc';
+    public $perPage = 10;
     public $importFile;
 
-    protected $queryString = ['search', 'sortField', 'sortDirection'];
+    protected $queryString = ['search', 'sortBy', 'sortDirection', 'perPage'];
 
     public function updatingSearch()
     {
         $this->resetPage();
     }
 
-    public function sortBy($field)
+    public function sortByField($field)
     {
-        if ($this->sortField === $field) {
+        $allowed = ['tanggal_daftar', 'nama', 'tanggal_lahir', 'tempat_lahir', 'negara_tujuan', 'nama_sponsor'];
+        if (!in_array($field, $allowed)) return;
+
+        if ($this->sortBy === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
+            $this->sortBy = $field;
             $this->sortDirection = 'asc';
         }
-        $this->sortField = $field;
     }
 
     public function exportXlsx()
@@ -70,7 +74,16 @@ class TkiDataGrid extends Component
             });
         }
 
-        return $query->orderBy($this->sortField, $this->sortDirection);
+        $dbField = match($this->sortBy) {
+            'nama' => 'full_name',
+            'tanggal_lahir' => 'date_of_birth',
+            'tempat_lahir' => 'place_of_birth',
+            'negara_tujuan' => 'destination_country',
+            'nama_sponsor' => 'sponsor_id',
+            default => 'tanggal_daftar'
+        };
+
+        return $query->orderBy($dbField, $this->sortDirection);
     }
 
     public $editData = [];
@@ -82,14 +95,28 @@ class TkiDataGrid extends Component
     public function updatedSelectAll($value)
     {
         if ($value) {
-            // Select all currently paginated Pending TKIs
-            $this->selectedRows = $this->getQuery()
-                ->where('verification_status', 'Pending')
+            // Select all currently paginated TKIs
+            $this->selectedRows = collect($this->getQuery()->paginate($this->perPage)->items())
                 ->pluck('id')
                 ->map(fn($id) => (string) $id)
                 ->toArray();
         } else {
             $this->selectedRows = [];
+        }
+    }
+
+    public function deleteSelected()
+    {
+        if (auth()->check() && auth()->user()->hasRole('Super Admin')) {
+            $tkis = Tki::whereIn('id', $this->selectedRows)->get();
+            $count = $tkis->count();
+            foreach ($tkis as $tki) {
+                $tki->delete();
+            }
+            $this->selectedRows = [];
+            $this->selectAll = false;
+            session()->flash('message', "{$count} TKI(s) deleted successfully.");
+            // Also reset page if needed, but flash message is fine
         }
     }
 
@@ -166,7 +193,7 @@ class TkiDataGrid extends Component
     public function render()
     {
         return view('livewire.tki-data-grid', [
-            'tkis' => $this->getQuery()->paginate(10),
+            'tkis' => $this->getQuery()->paginate($this->perPage),
         ])->layout('components.layouts.app');
     }
 }

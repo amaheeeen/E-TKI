@@ -16,6 +16,7 @@ class TkiRegistrationForm extends Component
     public $documentScan;
     
     // Form fields
+    public $tanggal_daftar;
     public $full_name;
     public $passport_number;
     public $gender = 'L';
@@ -36,9 +37,15 @@ class TkiRegistrationForm extends Component
     public $visa_status;
     public $departure_date;
     public $notes;
+    public $existingTkiId = null;
 
+    public function mount()
+    {
+        $this->tanggal_daftar = now()->format('Y-m-d');
+    }
 
     protected $rules = [
+        'tanggal_daftar' => 'required|date',
         'full_name' => 'required|string|max:255',
         'passport_number' => 'nullable|string|max:255',
         'gender' => 'required|in:L,P',
@@ -135,7 +142,21 @@ class TkiRegistrationForm extends Component
     {
         $this->validate();
 
-        $tki = Tki::create([
+        // Duplicate Check
+        if (!$this->existingTkiId) {
+            $duplicate = Tki::where('full_name', $this->full_name)
+                            ->where('date_of_birth', $this->date_of_birth)
+                            ->first();
+
+            if ($duplicate) {
+                $this->existingTkiId = $duplicate->id;
+                $this->dispatch('confirm-overwrite');
+                return;
+            }
+        }
+
+        $data = [
+            'tanggal_daftar' => $this->tanggal_daftar,
             'full_name' => $this->full_name,
             'passport_number' => $this->passport_number,
             'gender' => $this->gender,
@@ -158,7 +179,16 @@ class TkiRegistrationForm extends Component
             'notes' => $this->notes,
             'registration_date' => now(),
             'verification_status' => 'Pending',
-        ]);
+        ];
+
+        if ($this->existingTkiId) {
+            $tki = Tki::findOrFail($this->existingTkiId);
+            $tki->update($data);
+            $message = 'TKI data overwritten successfully.';
+        } else {
+            $tki = Tki::create($data);
+            $message = 'TKI registered successfully.';
+        }
 
 
         if ($this->documentScan) {
@@ -170,9 +200,9 @@ class TkiRegistrationForm extends Component
             ]);
         }
 
-        session()->flash('success', 'TKI registered successfully.');
+        session()->flash('success', $message);
         $this->reset([
-            'full_name', 'passport_number', 'gender', 'place_of_birth', 'date_of_birth', 
+            'existingTkiId', 'tanggal_daftar', 'full_name', 'passport_number', 'gender', 'place_of_birth', 'date_of_birth', 
             'address', 'marital_status', 'mother_name', 'spouse_name', 'education', 
             'destination_country', 'experience_type', 'height', 'weight', 'sponsor_id', 
             'medical_date', 'employer_name', 'visa_status', 'departure_date', 'notes', 
